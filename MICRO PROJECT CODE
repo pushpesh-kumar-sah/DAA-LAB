@@ -1,0 +1,144 @@
+public class DAAproject {
+
+    static final int V = 5;
+
+    // ----- DIJKSTRA HELPER -----
+    int minDistance(int dist[], boolean visited[]) {
+        int min = Integer.MAX_VALUE;
+        int min_index = -1;
+
+        for (int v = 0; v < V; v++) {
+            if (!visited[v] && dist[v] <= min) {
+                min = dist[v];
+                min_index = v;
+            }
+        }
+        return min_index;
+    }
+
+    // ----- DIJKSTRA ALGORITHM -----
+    void dijkstra(int graph[][], int src) {
+        int dist[] = new int[V];
+        boolean visited[] = new boolean[V];
+
+        for (int i = 0; i < V; i++) {
+            dist[i] = Integer.MAX_VALUE;
+            visited[i] = false;
+        }
+
+        dist[src] = 0;
+
+        for (int count = 0; count < V - 1; count++) {
+            int u = minDistance(dist, visited);
+            visited[u] = true;
+
+            for (int v = 0; v < V; v++) {
+                if (!visited[v] && graph[u][v] != 0 &&
+                        dist[u] != Integer.MAX_VALUE &&
+                        dist[u] + graph[u][v] < dist[v]) {
+
+                    dist[v] = dist[u] + graph[u][v];
+                }
+            }
+        }
+
+        for (int i = 0; i < V; i++) {
+            System.out.println("City " + i + " : " + dist[i]);
+        }
+    }
+
+    // ----- PRIM'S ALGORITHM -----
+    void primMST(int graph[][]) {
+        int parent[] = new int[V];
+        int key[] = new int[V];
+        boolean mstSet[] = new boolean[V];
+
+        for (int i = 0; i < V; i++) {
+            key[i] = Integer.MAX_VALUE;
+            mstSet[i] = false;
+        }
+
+        key[0] = 0;
+        parent[0] = -1;
+
+        for (int count = 0; count < V - 1; count++) {
+            int min = Integer.MAX_VALUE, u = -1;
+
+            for (int v = 0; v < V; v++) {
+                if (!mstSet[v] && key[v] < min) {
+                    min = key[v];
+                    u = v;
+                }
+            }
+
+            mstSet[u] = true;
+
+            for (int v = 0; v < V; v++) {
+                if (graph[u][v] != 0 && !mstSet[v] && graph[u][v] < key[v]) {
+                    parent[v] = u;
+                    key[v] = graph[u][v];
+                }
+            }
+        }
+
+        int totalCost = 0;
+        System.out.println("\nMinimum Spanning Tree:");
+
+        for (int i = 1; i < V; i++) {
+            System.out.println(parent[i] + " - " + i + " : " + graph[i][parent[i]]);
+            totalCost += graph[i][parent[i]];
+        }
+
+        System.out.println("Total Network Cost = " + totalCost);
+    }
+
+    // ----- MAIN METHOD -----
+    public static void main(String[] args) {
+
+        int graph[][] = {
+                {0, 4, 2, 0, 0},
+                {4, 0, 1, 5, 0},
+                {2, 1, 0, 8, 10},
+                {0, 5, 8, 0, 2},
+                {0, 0, 10, 2, 0}
+        };
+
+        // COST MATRIX (can be different from distance)
+        int cost[][] = {
+                {0, 6, 3, 0, 0},
+                {6, 0, 2, 7, 0},
+                {3, 2, 0, 9, 12},
+                {0, 7, 9, 0, 4},
+                {0, 0, 12, 4, 0}
+        };
+
+        double alpha = 1.0; // importance of distance
+        double beta = 1.0;  // importance of cost
+
+        int combined[][] = new int[V][V];
+
+        // CREATE COMBINED GRAPH
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                if (graph[i][j] != 0) {
+                    combined[i][j] = (int) (alpha * graph[i][j] + beta * cost[i][j]);
+                } else {
+                    combined[i][j] = 0;
+                }
+            }
+        }
+
+        DAAproject obj = new DAAproject();
+
+        // 1. SHORTEST PATH
+        System.out.println("Shortest Path (Distance Only):");
+        obj.dijkstra(graph, 0);
+
+        // 2. MINIMUM COST NETWORK
+        obj.primMST(graph);
+
+        // 3. COMBINED OPTIMIZATION
+        System.out.println("\nCombined Optimization (Distance + Cost):");
+        obj.dijkstra(combined, 0);
+    }
+}
